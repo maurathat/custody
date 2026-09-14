@@ -1,0 +1,17 @@
+custody: the handoff payload class
+
+Disclosure
+
+Maura Clark authored uor-jcs-nfc [1], a related canonicalization that this
+profile deliberately does not select; its specification, reference
+implementation, and a provisional RC5 corpus are public, and its final
+uor-vectors-v2 corpus is not yet designated. Maura Clark contributes to the
+UOR Foundation, which is not a dependency of the protocol.
+
+impl/canon.py was written by Maura Clark and is vendored unmodified from
+https://github.com/maurathat/canonical-dataset-lineage at commit
+f60922396b81f44ed181568c922281d9eb81e98f.
+
+[1] M. Clark, "UOR-JCS-NFC," version 1.1 (draft), UOR Foundation repository,
+    2026, pinned at commit:
+    https://github.com/UOR-Foundation/uor-jcs-nfc/blob/303591128094362857791930fdc12b73875d1ff6/SPEC.md
