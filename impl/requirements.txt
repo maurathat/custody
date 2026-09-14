@@ -1,0 +1,2 @@
+# Fully pinned. The only dependency is RFC 8785 JCS, imported by the vendored canon.py.
+rfc8785==0.1.4
