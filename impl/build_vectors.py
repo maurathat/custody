@@ -3,11 +3,16 @@ blocks in README.md and example/README.md. Never hand-edit any of them.
 
     python impl/build_vectors.py
 
-Every digest is computed here: subjects with canon.dataset_id over synthetic dataset bytes,
-observed digests as SHA-256 of the exact wire bytes, prev and addresses with
-handoff.derive_address. Each vector states the outcome it was written to produce, and the
-build stops if the implementation disagrees. Expected outcomes are then pinned from this
-implementation: regression and interoperability targets, not independent evidence.
+Every digest that identifies a real record or payload is computed here: subjects with
+canon.dataset_id over synthetic dataset bytes, observed digests as SHA-256 of the exact wire
+bytes, prev and addresses with handoff.derive_address. Forged references (FORGED_X, FORGED_Y)
+are fixed literals by design: their job is to resolve to nothing. Each vector states the
+outcome it was written to produce, and the build raises BuildError if the implementation
+disagrees. Expected outcomes are then pinned from this implementation: regression and
+interoperability targets, not independent evidence.
+
+When vectors.json changes, vectors/CROSS_BUILD goes stale and this build stops after writing
+SHA256SUMS. Run impl/cross_build.py with one or more other interpreters, then this again.
 """
 from __future__ import annotations
 
@@ -22,12 +27,22 @@ import verify
 from verify import ROOT, compact, sha256
 
 
+class BuildError(Exception):
+    """A fixture or vector does not do what it was written to do. Raised rather than asserted,
+    so python -O cannot remove the check."""
+
+
+def require(condition: bool, message) -> None:
+    if not condition:
+        raise BuildError(message)
+
+
 def ref(kind: str, digest: str) -> dict:
     return {"type": kind, "digest_alg": "SHA-256", "digest": digest}
 
 
 def swap(text: str, old: str, new: str) -> str:
-    assert text.count(old) == 1, (old, text)
+    require(text.count(old) == 1, f"{old!r} does not occur exactly once")
     return text.replace(old, new)
 
 
@@ -55,7 +70,7 @@ def record(seq, frm, to, rel, subject, observed, prev=None, result=None, address
     fields["rel"] = rel
     if result is not None:
         fields["result"] = ref("dataset", result)
-    fields["schema_version"] = "1"
+    fields["schema_version"] = handoff.SCHEMA_VERSION
     if address is not None:
         fields["address"] = address
     return compact(fields)
@@ -74,8 +89,9 @@ WIRE_C = compact({"owner": "buyer-2", "schema_version": "1", "parents": [canon.r
                   "content": {"sku": "widget", "total": 6}})
 DATASET_C = canon.dataset_id(WIRE_C.encode())
 OBS_A, OBS_A_RE, OBS_B, OBS_C = (sha256(w.encode()) for w in (WIRE_A, WIRE_A_RE, WIRE_B, WIRE_C))
-assert canon.dataset_id(WIRE_A_RE.encode()) == DATASET_A and OBS_A_RE != OBS_A
-assert len({DATASET_A, DATASET_B, DATASET_C}) == 3
+require(canon.dataset_id(WIRE_A_RE.encode()) == DATASET_A and OBS_A_RE != OBS_A,
+        "the re-encoded payload must keep dataset A's identifier and change its bytes")
+require(len({DATASET_A, DATASET_B, DATASET_C}) == 3, "datasets A, B and C must be distinct")
 
 # chain fixtures (agents as in SPEC section 5) --------------------------------------------------
 R0 = record(0, "seller-0", "buyer-0", "verbatim", DATASET_A, OBS_A)
@@ -94,11 +110,13 @@ FORGED_X, FORGED_Y = "a1" * 32, "b2" * 32
 X = record(1, "buyer-0", "buyer-1", "verbatim", DATASET_A, OBS_A, prev=FORGED_Y, address=FORGED_X)
 Y = record(2, "buyer-1", "buyer-2", "verbatim", DATASET_A, OBS_A, prev=FORGED_X, address=FORGED_Y)
 MALFORMED = swap(R1, '"seq":1,', '"seq":1,"seq":2,')
+MALFORMED_RESPELLED = MALFORMED.replace(",", ", ")  # still two seq members, different bytes
 R1_RESPELLED = json.dumps(reversed_members(json.loads(R1)), ensure_ascii=False, indent=2).replace('"seq": 1', '"seq": 1.0')
 
 # canonicalization base: a non-ASCII agent pair exercises NFC -----------------------------------
 BASE = record(1, "relé-1", "relé-2", "reencoded", DATASET_A, OBS_A_RE, prev=addr(R0))
 BASE_ADDRESS = addr(BASE)
+NEAR_MISS = BASE_ADDRESS[:-1] + ("0" if BASE_ADDRESS[-1] != "0" else "1")
 
 ACCEPT = "accept"
 
@@ -134,9 +152,12 @@ VECTORS = [
      json.dumps(json.loads(BASE), ensure_ascii=False, indent="\t").replace("\n", "\r\n"), ACCEPT,
      {"equivalent_to": "canon-base"}),
     ("canon-address-correct", "canonicalization", "§2", "carries its own address",
-     BASE[:-1] + ',"address":"%s"}' % BASE_ADDRESS, ACCEPT, {"equivalent_to": "canon-base"}),
+     BASE[:-1] + ',"address":"%s"}' % BASE_ADDRESS, {"carried_address": "matches"}, {"equivalent_to": "canon-base"}),
     ("canon-address-other", "canonicalization", "§2", "carries another record's address",
-     BASE[:-1] + ',"address":"%s"}' % addr(R0), ACCEPT, {"equivalent_to": "canon-base"}),
+     BASE[:-1] + ',"address":"%s"}' % addr(R0), {"carried_address": "differs"}, {"equivalent_to": "canon-base"}),
+    ("carried-address-differs", "carried-address", "§2",
+     "carries its own address with one hex digit changed: derives cleanly, reported as differs",
+     BASE[:-1] + ',"address":"%s"}' % NEAR_MISS, {"carried_address": "differs"}, {"equivalent_to": "canon-base"}),
 
     ("commit-to", "commitment", "§2", "to changed", swap(BASE, '"to":"relé-2"', '"to":"relé-3"'),
      ACCEPT, {"differs_from": "canon-base"}),
@@ -195,20 +216,24 @@ VECTORS = [
      reject("ShapeError", "INVALID_AGENT"), {}),
     ("adm-rel-unknown", "admission", "§2", "rel copied", swap(BASE, '"rel":"reencoded"', '"rel":"copied"'),
      reject("ShapeError", "INVALID_REL"), {}),
-    ("adm-schema-version", "admission", "§2", "schema_version 2", swap(BASE, '"schema_version":"1"', '"schema_version":"2"'),
+    ("adm-schema-version", "admission", "§2", "schema_version 2", swap(BASE, f'"schema_version":"{handoff.SCHEMA_VERSION}"', '"schema_version":"2"'),
      reject("ShapeError", "UNSUPPORTED_SCHEMA_VERSION"), {}),
     ("adm-address-malformed", "admission", "§2", "carried address is not 64-hex", BASE[:-1] + ',"address":"nothex"}',
      reject("ShapeError", "MALFORMED_ADDRESS"), {}),
+    ("adm-address-uppercase", "admission", "§2", "carried address in uppercase hex",
+     BASE[:-1] + ',"address":"%s"}' % BASE_ADDRESS.upper(), reject("ShapeError", "MALFORMED_ADDRESS"), {}),
+    ("adm-address-not-hex", "admission", "§2", "carried address of 64 characters that are not hex",
+     BASE[:-1] + ',"address":"%s"}' % ("g" * 64), reject("ShapeError", "MALFORMED_ADDRESS"), {}),
 
-    ("h1-derived", "H1", "§3 H1", "derived with a result distinct from subject", R2_DERIVED, ACCEPT, {}),
-    ("h1-derived-without-result", "H1", "§3 H1", "derived with result absent",
-     edited(R2_DERIVED, lambda d: d.pop("result")), reject("RuleError", "H1_RESULT_REQUIRED"), {}),
-    ("h1-derived-result-is-subject", "H1", "§3 H1", "derived with result.digest == subject.digest",
-     edited(R2_DERIVED, lambda d: d["result"].update(digest=DATASET_A)), reject("RuleError", "H1_RESULT_EQUALS_SUBJECT"), {}),
-    ("h1-verbatim-with-result", "H1", "§3 H1", "verbatim with result present",
-     edited(R2_DERIVED, lambda d: d.update(rel="verbatim")), reject("RuleError", "H1_RESULT_FORBIDDEN"), {}),
-    ("h1-reencoded-with-result", "H1", "§3 H1", "reencoded with result present",
-     edited(R2_DERIVED, lambda d: d.update(rel="reencoded")), reject("RuleError", "H1_RESULT_FORBIDDEN"), {}),
+    ("h1-derived", "H1", "§2 (H1)", "derived with a result distinct from subject", R2_DERIVED, ACCEPT, {}),
+    ("h1-derived-without-result", "H1", "§2 (H1)", "derived with result absent",
+     edited(R2_DERIVED, lambda d: d.pop("result")), reject("PairingError", "RESULT_REQUIRED"), {}),
+    ("h1-derived-result-is-subject", "H1", "§2 (H1)", "derived with result.digest == subject.digest",
+     edited(R2_DERIVED, lambda d: d["result"].update(digest=DATASET_A)), reject("PairingError", "RESULT_EQUALS_SUBJECT"), {}),
+    ("h1-verbatim-with-result", "H1", "§2 (H1)", "verbatim with result present",
+     edited(R2_DERIVED, lambda d: d.update(rel="verbatim")), reject("PairingError", "RESULT_FORBIDDEN"), {}),
+    ("h1-reencoded-with-result", "H1", "§2 (H1)", "reencoded with result present",
+     edited(R2_DERIVED, lambda d: d.update(rel="reencoded")), reject("PairingError", "RESULT_FORBIDDEN"), {}),
 
     ("h2-verbatim", "H2", "§3 H2", "verbatim: same subject, same observed", [R0, R1_VERBATIM], [VERIFIED], {}),
     ("h2-reencoded", "H2", "§3 H2", "reencoded, the benign case: same subject, observed moved", [R0, R1], [VERIFIED], {}),
@@ -216,39 +241,43 @@ VECTORS = [
      [R0, R1_VERBATIM_MOVED], [edge("Failed", "H2_VERBATIM_BYTES_CHANGED")], {}),
     ("h2-reencoded-bytes-still", "H2", "§3 H2", "reencoded while observed matches the predecessor's",
      [R0, R1_REENCODED_STILL], [edge("Failed", "H2_REENCODED_BYTES_UNCHANGED")], {}),
-    ("h2-reencoded-subject-changed", "H2", "§3 H2", "reencoded with a changed subject",
-     [R0, R1_REENCODED_SWAPPED], [edge("Failed", "H2_SUBJECT_CHANGED", "H3_SUBJECT_DISCONTINUITY")], {}),
+    ("h2-reencoded-subject-changed", "H2", "§3 H3", "reencoded with a changed subject",
+     [R0, R1_REENCODED_SWAPPED], [edge("Failed", "H3_SUBJECT_DISCONTINUITY")], {}),
 
-    ("h3-seq0-with-prev", "H3", "§3 H3", "seq 0 carrying prev",
-     edited(R0, lambda d: d.update(prev=ref("handoff", addr(R1)))), reject("RuleError", "H3_PREV_AT_SEQ_ZERO"), {}),
-    ("h3-seq1-without-prev", "H3", "§3 H3", "seq 1 with prev absent", edited(R1, lambda d: d.pop("prev")),
-     reject("RuleError", "H3_PREV_REQUIRED"), {}),
+    ("h3-seq0-with-prev", "H3", "§2 (H3)", "seq 0 carrying prev",
+     edited(R0, lambda d: d.update(prev=ref("handoff", addr(R1)))), reject("PairingError", "PREV_AT_SEQ_ZERO"), {}),
+    ("h3-seq1-without-prev", "H3", "§2 (H3)", "seq 1 with prev absent", edited(R1, lambda d: d.pop("prev")),
+     reject("PairingError", "PREV_REQUIRED"), {}),
     ("h3-seq-gap", "H3", "§3 H3", "seq 2 whose prev is seq 0: a silent drop",
      [R0, R2_GAP], [edge("Failed", "H3_SEQ_NOT_CONSECUTIVE")], {}),
     ("h3-prev-unresolved", "H3", "§3 H3", "prev names a record not in the set", [R1],
      [edge("Unresolved", "H3_PREV_UNRESOLVED")], {}),
     ("h3-substitution", "H3", "§3 H3", "subject changes with no bridging derived record: the substitution",
-     [R0, R1, R2], [VERIFIED, edge("Failed", "H2_SUBJECT_CHANGED", "H2_VERBATIM_BYTES_CHANGED", "H3_SUBJECT_DISCONTINUITY")], {}),
-    ("h3-derived-crossing", "H3", "§3 H2 H3", "valid chain crossing a derived record; the next record carries result",
+     [R0, R1, R2], [VERIFIED, edge("Failed", "H2_VERBATIM_BYTES_CHANGED", "H3_SUBJECT_DISCONTINUITY")], {}),
+    ("h3-derived-crossing", "H3", "§3 H2, §3 H3", "valid chain crossing a derived record; the next record carries result",
      [R0, R1, R2_DERIVED, R3_AFTER], [VERIFIED, VERIFIED, VERIFIED], {}),
-    ("h3-derived-not-followed", "H3", "§3 H2 H3", "after a derived record, the next record keeps the old subject",
-     [R0, R1, R2_DERIVED, R3_STALE], [VERIFIED, VERIFIED, edge("Failed", "H2_SUBJECT_CHANGED", "H3_SUBJECT_DISCONTINUITY")], {}),
-    ("h3-forged-cycle", "H3", "§3 H3 H4", "carried addresses forge a prev cycle; prev resolves by recomputed address, so neither resolves",
+    ("h3-derived-not-followed", "H3", "§3 H3", "after a derived record, the next record keeps the old subject",
+     [R0, R1, R2_DERIVED, R3_STALE], [VERIFIED, VERIFIED, edge("Failed", "H3_SUBJECT_DISCONTINUITY")], {}),
+    ("h3-forged-cycle", "H3", "§3 H3, §3 H4", "carried addresses forge a prev cycle; prev resolves by recomputed address, so neither resolves",
      [X, Y], [edge("Unresolved", "H3_PREV_UNRESOLVED"), edge("Unresolved", "H3_PREV_UNRESOLVED")], {}),
     ("h3-malformed-member", "H3", "§3 H3", "a record with a duplicate seq member inside a set",
      [R0, MALFORMED], [edge("Malformed", "DUPLICATE_MEMBER")], {}),
 
     ("h4-two-orders", "H4", "§3 H4", "one record set in forward and reverse array order",
      ([R0, R1, R2, X, MALFORMED], [[0, 1, 2, 3, 4], [4, 3, 2, 1, 0]]),
-     [VERIFIED, edge("Failed", "H2_SUBJECT_CHANGED", "H2_VERBATIM_BYTES_CHANGED", "H3_SUBJECT_DISCONTINUITY"),
+     [VERIFIED, edge("Failed", "H2_VERBATIM_BYTES_CHANGED", "H3_SUBJECT_DISCONTINUITY"),
       edge("Unresolved", "H3_PREV_UNRESOLVED"), edge("Malformed", "DUPLICATE_MEMBER")], {}),
     ("h4-respelled-record", "H4", "§3 H4", "one record in two spellings, in forward and reverse array order",
      ([R0, R1, R1_RESPELLED], [[0, 1, 2], [2, 1, 0]]), [VERIFIED], {}),
+    ("h4-respelled-malformed", "H4", "§3 H4",
+     "one malformed record in two spellings: two entries, since it has no canonical form",
+     ([R0, MALFORMED, MALFORMED_RESPELLED], [[0, 1, 2], [2, 1, 0]]),
+     [edge("Malformed", "DUPLICATE_MEMBER"), edge("Malformed", "DUPLICATE_MEMBER")], {}),
 ]
 
 
 def build_vector(vid, category, rule, description, given, intended, relation) -> dict:
-    vector = {"id": vid, "category": category, "rule": rule, "description": description}
+    vector = {"id": vid, "category": category, "rule": rule.split(", "), "description": description}
     if isinstance(given, str):
         vector["input"] = {"record": given}
     elif isinstance(given, list):
@@ -257,13 +286,16 @@ def build_vector(vid, category, rule, description, given, intended, relation) ->
         vector["input"] = {"records": given[0], "orders": given[1]}
     got = verify.evaluate(vector)
     if intended == ACCEPT:
-        assert "address" in got, (vid, got)
+        require("address" in got, (vid, got))
+    elif isinstance(intended, dict):
+        require("address" in got and got.get("carried_address") == intended["carried_address"], (vid, got))
     elif isinstance(intended, tuple):
-        assert got.get("reject") == {"error": intended[0], "code": intended[1]}, (vid, got)
+        require(got.get("reject") == {"error": intended[0], "code": intended[1]}, (vid, got))
     else:
-        states = sorted((e["state"], tuple(e["reasons"])) for e in got["graph"]["edges"])
-        assert states == sorted(intended), (vid, states)
-        assert got.get("orders_agree", True), vid
+        entries = got["graph"]["edges"] + got["graph"]["malformed"]
+        states = sorted((e["state"], tuple(e["reasons"])) for e in entries)
+        require(states == sorted(intended), (vid, states))
+        require(got.get("orders_agree", True), vid)
     return {**vector, "expect": got, **relation}
 
 
@@ -286,30 +318,39 @@ def write_json(path, value) -> None:
     path.write_text(json.dumps(value, ensure_ascii=True, indent=1) + "\n")
 
 
-def main() -> None:
+def generate() -> tuple:
+    """Write the generated data files: vectors.json, example/chain.json and BUILD_ENV.
+    impl/cross_build.py calls this alone, under other interpreters."""
     verify.block_network()
     doc = {"class": "handoff",
-           "spec": "SPEC.md section 2 (shape, canonicalization) and section 3 (H1-H4)",
+           "spec": "SPEC.md section 2 (intra-record: shape, pairings, canonicalization) and section 3 (inter-record: H2-H4)",
            "generator": "impl/build_vectors.py",
-           "generated_with": {"python": platform.python_version(), "unicode": unicodedata.unidata_version,
-                              "rfc8785": importlib.metadata.version("rfc8785")},
            "input_encoding": "each record is the UTF-8 encoding of its string",
            "provenance": "Expected outcomes are pinned from this implementation. They are regression and "
                          "interoperability targets, not independent evidence.",
            "vectors": [build_vector(*v) for v in VECTORS]}
-    assert len({v["id"] for v in doc["vectors"]}) == len(doc["vectors"])
+    require(len({v["id"] for v in doc["vectors"]}) == len(doc["vectors"]), "vector ids must be unique")
+    env = {"python": platform.python_version(), "unicode": unicodedata.unidata_version,
+           "rfc8785": importlib.metadata.version("rfc8785")}
     example = build_example()
     write_json(ROOT / "vectors" / "vectors.json", doc)
     write_json(ROOT / "example" / "chain.json", example)
+    (ROOT / "vectors" / "BUILD_ENV").write_text(
+        "# Environment of the last impl/build_vectors.py run, recorded for reproduction.\n"
+        "# vectors.json does not depend on it.\n" + "".join(f"{key} {value}\n" for key, value in env.items()))
+    return doc, example, env
 
+
+def main() -> None:
+    doc, example, env = generate()
     for path, name in verify.DOC_BLOCKS:
         file = ROOT / path
-        file.write_text(verify.splice(file.read_text(), name, verify.render_blocks(doc, example)[name]))
+        file.write_text(verify.splice(file.read_text(), name, verify.render_blocks(doc, example, env, verify.cross_build())[name]))
     (ROOT / "vectors" / "SHA256SUMS").write_text(
-        "".join(f"{sha256((ROOT / p).read_bytes())}  {p}\n" for p in verify.coverage()))
+        "".join(f"{sha256((ROOT / p).read_bytes())}  {p}\n" for p in verify.coverage() if (ROOT / p).is_file()))
 
     rows, failures = verify.run_checks()
-    assert not failures, failures
+    require(not failures, failures)
     path, name = verify.TRANSCRIPT
     file = ROOT / path
     file.write_text(verify.splice(file.read_text(), name, verify.transcript(verify.render_report(rows, failures))))

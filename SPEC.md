@@ -24,16 +24,20 @@ Two classes sharing one canonicalization is the CPB idiom and is already in use 
 | `observed` | typed digest reference, `type: "dataset-bytes"` | digest of the wire payload **as received**; distinct digest context, never comparable with `subject` |
 | `from` | non-empty string | sender agent identifier |
 | `to` | non-empty string | receiver agent identifier |
-| `seq` | integral number, `>= 0`, within ±(2⁵³−1) | position in this artifact's handoff chain |
+| `seq` | integral number, `>= 0`, within ±(2⁵³−1) | position in the handoff chain; counts hops, not artifacts |
 | `prev` | typed digest reference, `type: "handoff"` | absent **iff** `seq == 0` |
 | `rel` | `"verbatim"` | `"reencoded"` | `"derived"` | relation to the predecessor |
-| `result` | typed digest reference, `type: "dataset"` | present **iff** `rel == "derived"` |
+| `result` | typed digest reference, `type: "dataset"` | present **iff** `rel == "derived"`, and then `result.digest != subject.digest` |
 | `schema_version` | `"1"` |  |
-| `address` | string | carries the identifier; **excluded** before hashing |
+| `address` | string, 64 lowercase hex | carries the identifier; **excluded** before hashing |
 
 Typed digest references are closed objects carrying exactly `type`, `digest_alg: "SHA-256"`, and a 64-hex `digest`, as in the `dataset` class. References live only in the payload, never in a `cpb-refs` header, and are not excluded — so a record commits to its subject, its predecessor, and its result.
 
 **There is no timestamp member.** Order comes from `seq` and `prev`. This is deliberate: producer clocks order nothing, and omitting the field removes the temptation to use it.
+
+**Every constraint in this section is intra-record.** Each is decided from the record alone, before an address exists, so whether a record is addressable never depends on which other records are held. The conditional notes in the table (`prev`, `result`) are part of the shape, not consistency rules. A record that fails any constraint here has no address. §3 holds only the rules that need a predecessor.
+
+**The carried `address`.** `address` carries the derived identifier. It is excluded before hashing, so its value never changes the identifier, and a well-formed value that disagrees does not affect addressability: the record still derives its address. Agreement is reported separately, as its own state (`absent`, `matches`, or `differs`), which is neither a §2 failure nor a §3 chain state.
 
 ### Canonicalization
 
@@ -50,27 +54,35 @@ Validation precedes exclusion, so an excluded field cannot hide malformed input.
 
 ## 3\. Consistency rules
 
-These are what make `rel` a checkable claim rather than a declaration.
+This section holds the inter-record rules. **H3 answers whether a record continues the chain; H2 answers whether its declared relation is honest.** H4 fixes how the chain is reconstructed, and H1 is kept only as a pointer to §2.
 
 The vectors in [`vectors/vectors.json`](vectors/vectors.json) check these rules; each vector names the rule it exercises.
 
-**H1 — relation/result coupling.** `rel: "derived"` requires `result` present and `result.digest != subject.digest`. `verbatim` and `reencoded` require `result` absent.
+Every rule here relates a record to its predecessor and assumes both already have a derived address (§2). For a record with predecessor P, let `out(P)` be the artifact P hands on: `P.result` if `P.rel == "derived"`, otherwise `P.subject`. Let `base(P)` be the last observation of `out(P)`: `P.observed` if `P.rel != "derived"`, and none otherwise, because no party has yet observed a `result` (see §6).
+
+**H1 — relation/result coupling.** Intra-record, so stated once, in the `result` row of §2. The label is kept so that vector identifiers stay stable.
 
 **H2 — relation is verified, not asserted.** Against the predecessor record P:
 
-- `verbatim` requires `observed.digest == P.observed.digest` and `subject.digest == P.subject.digest`.  
-- `reencoded` requires `subject.digest == P.subject.digest` and `observed.digest != P.observed.digest`.  
-- `derived` requires `subject.digest == P.subject.digest`; the next record in the chain takes `result` as its `subject`.
+- `verbatim` requires `observed.digest == base(P).digest`.  
+- `reencoded` requires `observed.digest != base(P).digest`.  
+- `derived` places no requirement on `observed`.
 
-A record whose declared `rel` contradicts its digests is **Failed**, not merely inconsistent.
+Where `base(P)` is none, the `observed` requirements are not evaluated. A record whose declared `rel` contradicts its digests is **Failed**, not merely inconsistent.
 
-**H3 — chain integrity.** `prev` absent iff `seq == 0`. Otherwise `prev` MUST resolve to a record P with `P.seq == seq - 1`, and `P.subject == subject` unless `P.rel == "derived"`, in which case `P.result == subject`.
+**H3 — chain integrity.** `prev` MUST resolve to a record P in the set with `P.seq == seq - 1` and `subject.digest == out(P).digest`. Whether `prev` is present at all is intra-record: see the `prev` row of §2.
 
 **H4 — reconstruction determinism.** The handoff graph is computed **only** by following `prev`. No ordering heuristic, no timestamp tiebreak, no agent-interleaving assumption. Normatively:
 
 > Any two conformant analyzers MUST recover the same handoff graph from the same record set.
 
-Edges report a CPB reference state — *Verified*, *Failed*, *Unresolved*, *Malformed* — plus the profile state *Cyclic*, since under honest content addressing a revisited node signals a forged reference. No non-Verified state counts as a pass.
+A record set is a set of byte strings. Records that derive the same address are one node, whatever their spelling. A *Malformed* record has no canonical form, so it is identified by its exact bytes: two spellings of one unparseable record are two entries.
+
+Edges report one of the CPB reference states *Verified*, *Failed* or *Unresolved*, or the profile state *Cyclic*, since under honest content addressing a revisited node signals a forged reference. *Failed* means an addressed record violates H2 or H3. CPB's *Malformed* is a record state here, not an edge state: a record that fails §2, including one with a malformed reference, has no address, so it is not a node and there is nothing to attach an edge to. It is identified by the SHA-256 of its bytes. Only *Verified* counts as a pass.
+
+**Per-edge states are local.** A record that correctly continues the chain from a Failed predecessor has correctly continued it, and reports Verified; conflating the two would let one bad record poison every downstream diagnostic. The verdict for a record set is the composition of its edge states: a set containing any *Malformed* record or any non-Verified edge fails as a whole.
+
+**Carried addresses do not enter the verdict.** Agreement between a record's carried `address` and its derived identifier is reported per record (§2), not in the handoff graph, and does not enter the verdict, because addressability cannot depend on an excluded field. The graph could not hold it in any case: it is keyed by derived address, so spellings of one record that carry different addresses are one node. A set in which every record carries a wrong `address` verifies if its edges do.
 
 ### Signing
 
@@ -120,5 +132,7 @@ Record 2 declares `verbatim` while its `subject` differs from its predecessor's 
 
 - Whether the recorder is the runtime or the receiving agent in a deployment where the runtime is untrusted.  
 - Whether `derived` needs a transform descriptor or whether the `result` dataset's own `parents` set already carries it — probably the latter, which would be a simplification.  
-- `seq` is per (subject, chain); concurrent forks of one artifact are out of scope for v0.1 and should be named as such.
+- `seq` is per chain, not per subject: it counts hops, not artifacts, so it continues across a `derived` hop even though the subject changes. Concurrent forks of one artifact are out of scope for v0.1 and should be named as such.  
+- The observation gap after a `derived` hop. No party observes `result` before the next hop, so `base(P)` is none, H2's `observed` requirements are not evaluated, and the `rel` of that next hop is unverifiable. Two resolutions: forbid `verbatim` and `reencoded` immediately after a `derived` predecessor and require a fresh origin state; or have the deriving party record its own observation of `result`, so the next hop has a baseline. The second is recommended. Under the first, the observation made after a derivation is never checked, yet it becomes `base(P)` for every later hop, so the gap propagates down the chain instead of closing.  
+- Whether a conformance profile should be able to require carried-address agreement. This profile reports disagreement and does not act on it (§2, §3). A deployment might reasonably want to refuse such records, and the spec leaves room for that rather than foreclosing it.
 

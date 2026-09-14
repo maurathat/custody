@@ -10,18 +10,21 @@ so this module calls canon's pipeline steps directly and applies the handoff sha
     canon._fold_nfc    step 2: NFC-fold every string and member name, reject collisions
     canon._identifier  steps 3-4: exclude the top-level address, RFC 8785 JCS, SHA-256 hex
 
-Two readings of SPEC section 3 are settled here; the spec text does not settle them:
+The work splits along the line SPEC.md draws. check_record applies every intra-record
+constraint of section 2 (shape, member types, reference form, the rel/result and prev/seq
+pairings, result != subject), so whether a record has an address is decided from that record
+alone. verify_chain applies the inter-record rules of section 3, which need a predecessor:
+resolution, seq - 1 and subject == out(P) (H3), and the observed comparison (H2).
+derive_address never consults the carried address; check_address reports whether it agrees,
+as a third kind of result that is neither a section 2 refusal nor a section 3 chain state.
 
-  * H2 at a derived hop. As written, H2 compares R.subject with P.subject for every rel,
-    H3 compares it with P.result when P is derived, and H1 forces P.result != P.subject,
-    so no record could follow a derived one. Here both rules compare R.subject with P's
-    outgoing artifact: P.result if P.rel == "derived", else P.subject. When P is derived,
-    H2's observed clause is skipped: P.observed digests the previous artifact's bytes, so
-    there is no baseline for the new artifact's.
+One reading is settled here rather than in the spec text:
+
   * Resolution. prev resolves only against addresses recomputed from record content. A
     carried address is excluded from the hash, so it never resolves anything. A prev cycle
-    would therefore need a SHA-256 fixpoint; the Cyclic guard keeps the walk total on any
-    input, but no constructible record set reaches it.
+    would therefore need a SHA-256 fixpoint. _on_cycle still walks every prev chain and
+    marks any address it revisits as Cyclic, so such a set would be reported rather than
+    looped on, but no constructible record set reaches it.
 """
 from __future__ import annotations
 
@@ -36,6 +39,7 @@ MEMBERS = frozenset(REQUIRED) | {"prev", "result", "address"}
 REFERENCE_TYPES = {"subject": "dataset", "observed": "dataset-bytes", "prev": "handoff", "result": "dataset"}
 
 VERIFIED, FAILED, UNRESOLVED, MALFORMED, CYCLIC = "Verified", "Failed", "Unresolved", "Malformed", "Cyclic"
+ADDRESS_ABSENT, ADDRESS_MATCHES, ADDRESS_DIFFERS = "absent", "matches", "differs"
 
 
 class HandoffError(Exception):
@@ -54,11 +58,12 @@ class ShapeError(HandoffError):
     """The payload is outside the closed shape of SPEC section 2."""
 
 
-class RuleError(HandoffError):
-    """A record-local rule of SPEC section 3 fails: H1, or prev absent iff seq == 0."""
+class PairingError(HandoffError):
+    """Two members of one record contradict each other (SPEC section 2): rel and result, result
+    and subject, or prev and seq."""
 
 
-def _admit(record: bytes):
+def _admit_and_fold(record: bytes):
     if not isinstance(record, bytes):
         raise TypeError("a handoff record is bytes")
     try:
@@ -77,8 +82,9 @@ def _check_reference(name: str, ref) -> None:
 
 
 def check_record(record: bytes) -> dict:
-    """Admit one record and apply the structural rules; return the folded payload or raise."""
-    payload = _admit(record)
+    """Admit one record and apply every intra-record constraint of SPEC section 2; return the
+    folded payload or raise. Nothing here needs another record."""
+    payload = _admit_and_fold(record)
     if not isinstance(payload, dict):
         raise ShapeError("NOT_AN_OBJECT")
     if set(payload) - MEMBERS:
@@ -104,21 +110,32 @@ def check_record(record: bytes) -> dict:
 
     if payload["rel"] == "derived":
         if "result" not in payload:
-            raise RuleError("H1_RESULT_REQUIRED")
+            raise PairingError("RESULT_REQUIRED")
         if payload["result"]["digest"] == payload["subject"]["digest"]:
-            raise RuleError("H1_RESULT_EQUALS_SUBJECT")
+            raise PairingError("RESULT_EQUALS_SUBJECT")
     elif "result" in payload:
-        raise RuleError("H1_RESULT_FORBIDDEN")
+        raise PairingError("RESULT_FORBIDDEN")
     if seq == 0 and "prev" in payload:
-        raise RuleError("H3_PREV_AT_SEQ_ZERO")
+        raise PairingError("PREV_AT_SEQ_ZERO")
     if seq > 0 and "prev" not in payload:
-        raise RuleError("H3_PREV_REQUIRED")
+        raise PairingError("PREV_REQUIRED")
     return payload
 
 
 def derive_address(record: bytes) -> str:
-    """Return the record's 64-hex identifier or raise. Validation precedes exclusion."""
+    """Return the record's 64-hex identifier or raise. Validation precedes exclusion, and the
+    carried address is never consulted."""
     return canon._identifier(check_record(record))
+
+
+def check_address(record: bytes) -> str:
+    """Report whether the carried address agrees with the derived identifier: absent, matches,
+    or differs. A record whose carried address differs still derives its address (SPEC
+    section 2). Raises only if the record fails section 2, when there is nothing to compare."""
+    payload = check_record(record)
+    if "address" not in payload:
+        return ADDRESS_ABSENT
+    return ADDRESS_MATCHES if payload["address"] == canon._identifier(payload) else ADDRESS_DIFFERS
 
 
 def _on_cycle(nodes: dict) -> set:
@@ -142,13 +159,8 @@ def _edge(address: str, record: dict, nodes: dict, cyclic: set):
     if parent is None:
         return UNRESOLVED, ["H3_PREV_UNRESOLVED"]
     derived = parent["rel"] == "derived"
-    same_subject = record["subject"]["digest"] == parent["result" if derived else "subject"]["digest"]
-    # Under this reading H2's subject clause and H3's are one predicate. Both codes are
-    # reported because the spec states both rules.
     reasons = []
-    if not same_subject:
-        reasons.append("H2_SUBJECT_CHANGED")
-    if not derived:
+    if not derived:  # base(P) is none after a derived hop, so H2 is not evaluated
         same_bytes = record["observed"]["digest"] == parent["observed"]["digest"]
         if record["rel"] == "verbatim" and not same_bytes:
             reasons.append("H2_VERBATIM_BYTES_CHANGED")
@@ -156,7 +168,7 @@ def _edge(address: str, record: dict, nodes: dict, cyclic: set):
             reasons.append("H2_REENCODED_BYTES_UNCHANGED")
     if parent["seq"] != record["seq"] - 1:
         reasons.append("H3_SEQ_NOT_CONSECUTIVE")
-    if not same_subject:
+    if record["subject"]["digest"] != parent["result" if derived else "subject"]["digest"]:  # out(P)
         reasons.append("H3_SUBJECT_DISCONTINUITY")
     return (FAILED, reasons) if reasons else (VERIFIED, [])
 
@@ -167,8 +179,9 @@ def verify_chain(records) -> dict:
     The result depends only on the set of records, never on their order: well-formed records
     are keyed by recomputed address, malformed ones by the SHA-256 of their bytes, and both
     are emitted sorted. Each record carrying prev contributes one edge in a SPEC section 3
-    state; each malformed record contributes a Malformed entry. The set is verified only if
-    every entry is Verified.
+    state. A malformed record fails section 2, so it has no address, no node and no edge; it
+    is listed under malformed, keyed by the SHA-256 of its bytes. The set is verified only if
+    nothing is malformed and every edge is Verified.
     """
     nodes, malformed = {}, {}
     for record in records:
@@ -186,8 +199,9 @@ def verify_chain(records) -> dict:
             state, reasons = _edge(address, nodes[address], nodes, cyclic)
             edges.append({"record": address, "prev": nodes[address]["prev"]["digest"],
                           "state": state, "reasons": reasons})
-    for digest in sorted(malformed):
-        edges.append({"record_bytes_sha256": digest, "state": MALFORMED, "reasons": [malformed[digest]]})
+    rejected = [{"record_bytes_sha256": digest, "state": MALFORMED, "reasons": [malformed[digest]]}
+                for digest in sorted(malformed)]
     return {"nodes": [{"address": address, "seq": nodes[address]["seq"]} for address in sorted(nodes)],
             "edges": edges,
-            "verified": all(edge["state"] == VERIFIED for edge in edges)}
+            "malformed": rejected,
+            "verified": not rejected and all(edge["state"] == VERIFIED for edge in edges)}

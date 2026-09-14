@@ -1,226 +1,287 @@
 {
  "class": "handoff",
- "spec": "SPEC.md section 2 (shape, canonicalization) and section 3 (H1-H4)",
+ "spec": "SPEC.md section 2 (intra-record: shape, pairings, canonicalization) and section 3 (inter-record: H2-H4)",
  "generator": "impl/build_vectors.py",
- "generated_with": {
-  "python": "3.13.3",
-  "unicode": "15.1.0",
-  "rfc8785": "0.1.4"
- },
  "input_encoding": "each record is the UTF-8 encoding of its string",
  "provenance": "Expected outcomes are pinned from this implementation. They are regression and interoperability targets, not independent evidence.",
  "vectors": [
   {
    "id": "canon-base",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "reference record, compact, fixed member order",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    }
   },
   {
    "id": "canon-member-order",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "members and reference keys in reverse order",
    "input": {
     "record": "{\"schema_version\":\"1\",\"rel\":\"reencoded\",\"prev\":{\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\",\"digest_alg\":\"SHA-256\",\"type\":\"handoff\"},\"seq\":1,\"to\":\"rel\u00e9-2\",\"from\":\"rel\u00e9-1\",\"observed\":{\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\",\"digest_alg\":\"SHA-256\",\"type\":\"dataset-bytes\"},\"subject\":{\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\",\"digest_alg\":\"SHA-256\",\"type\":\"dataset\"}}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-seq-1.0",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq spelled 1.0",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1.0,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-seq-1e0",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq spelled 1e0",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1e0,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-nfd-from",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "from in NFD",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rele\u0301-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-nfd-to",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "to in NFD",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rele\u0301-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-escape",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "from spelled with a \\u escape",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-indent",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "two-space indentation and newlines",
    "input": {
     "record": "{\n  \"subject\": {\n    \"type\": \"dataset\",\n    \"digest_alg\": \"SHA-256\",\n    \"digest\": \"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"\n  },\n  \"observed\": {\n    \"type\": \"dataset-bytes\",\n    \"digest_alg\": \"SHA-256\",\n    \"digest\": \"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"\n  },\n  \"from\": \"rel\u00e9-1\",\n  \"to\": \"rel\u00e9-2\",\n  \"seq\": 1,\n  \"prev\": {\n    \"type\": \"handoff\",\n    \"digest_alg\": \"SHA-256\",\n    \"digest\": \"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"\n  },\n  \"rel\": \"reencoded\",\n  \"schema_version\": \"1\"\n}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-tabs-crlf",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "tab indentation and CRLF line ends",
    "input": {
     "record": "{\r\n\t\"subject\": {\r\n\t\t\"type\": \"dataset\",\r\n\t\t\"digest_alg\": \"SHA-256\",\r\n\t\t\"digest\": \"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"\r\n\t},\r\n\t\"observed\": {\r\n\t\t\"type\": \"dataset-bytes\",\r\n\t\t\"digest_alg\": \"SHA-256\",\r\n\t\t\"digest\": \"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"\r\n\t},\r\n\t\"from\": \"rel\u00e9-1\",\r\n\t\"to\": \"rel\u00e9-2\",\r\n\t\"seq\": 1,\r\n\t\"prev\": {\r\n\t\t\"type\": \"handoff\",\r\n\t\t\"digest_alg\": \"SHA-256\",\r\n\t\t\"digest\": \"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"\r\n\t},\r\n\t\"rel\": \"reencoded\",\r\n\t\"schema_version\": \"1\"\r\n}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "absent"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-address-correct",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "carries its own address",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "matches"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "canon-address-other",
    "category": "canonicalization",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "carries another record's address",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"}"
    },
    "expect": {
-    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a"
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "differs"
+   },
+   "equivalent_to": "canon-base"
+  },
+  {
+   "id": "carried-address-differs",
+   "category": "carried-address",
+   "rule": [
+    "\u00a72"
+   ],
+   "description": "carries its own address with one hex digit changed: derives cleanly, reported as differs",
+   "input": {
+    "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e800\"}"
+   },
+   "expect": {
+    "address": "969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a",
+    "carried_address": "differs"
    },
    "equivalent_to": "canon-base"
   },
   {
    "id": "commit-to",
    "category": "commitment",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "to changed",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-3\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "730aaae060b9d2882caa25a8062b0102fd0ec0b6f128d2052d693382921adf87"
+    "address": "730aaae060b9d2882caa25a8062b0102fd0ec0b6f128d2052d693382921adf87",
+    "carried_address": "absent"
    },
    "differs_from": "canon-base"
   },
   {
    "id": "commit-seq",
    "category": "commitment",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq changed",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "7f8293dbc711942334e7799c01d125d6216e2defb5f5092db693dfdbd407730f"
+    "address": "7f8293dbc711942334e7799c01d125d6216e2defb5f5092db693dfdbd407730f",
+    "carried_address": "absent"
    },
    "differs_from": "canon-base"
   },
   {
    "id": "commit-observed",
    "category": "commitment",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "observed changed",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"084c21bfa689ffe087b2e1a6b382b7365d8cbb68a6cb768c0e42b30d6f5bb2f6\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "da4c32903a2354ce8d9ed2557acc8c94e874af9f79aa29d9f225a8e0b37e78cd"
+    "address": "da4c32903a2354ce8d9ed2557acc8c94e874af9f79aa29d9f225a8e0b37e78cd",
+    "carried_address": "absent"
    },
    "differs_from": "canon-base"
   },
   {
    "id": "commit-prev",
    "category": "commitment",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "prev changed",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "e8903863b295190f2b0fadee12bda0e3044a966dbf4e1ea92bb641d6f2029301"
+    "address": "e8903863b295190f2b0fadee12bda0e3044a966dbf4e1ea92bb641d6f2029301",
+    "carried_address": "absent"
    },
    "differs_from": "canon-base"
   },
   {
    "id": "commit-rel",
    "category": "commitment",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "rel changed",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"verbatim\",\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "74d0d03b875a0fc0f9092d41c69b2b80fb76665475d0d786dcad698dd36788ff"
+    "address": "74d0d03b875a0fc0f9092d41c69b2b80fb76665475d0d786dcad698dd36788ff",
+    "carried_address": "absent"
    },
    "differs_from": "canon-base"
   },
   {
    "id": "adm-duplicate-after-escape",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "to and t\\u006f: duplicate names after escape decoding",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"t\\u006f\":\"x\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -235,7 +296,9 @@
   {
    "id": "adm-duplicate-address",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "address twice: validation precedes exclusion",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a\",\"address\":\"969f4fdc49787d8b91443f4fe983c08705eae4631c423afd57842a06c2b4e80a\"}"
@@ -250,7 +313,9 @@
   {
    "id": "adm-lone-surrogate",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "from is a lone surrogate",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"\\ud800\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -265,7 +330,9 @@
   {
    "id": "adm-nfc-name-collision",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "two member names equal after NFC folding",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"\u00e9\":1,\"e\u0301\":2}"
@@ -280,7 +347,9 @@
   {
    "id": "adm-seq-fraction",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq 1.5 is not integral",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1.5,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -295,7 +364,9 @@
   {
    "id": "adm-seq-2p53",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq 2^53 is outside the integral range",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":9007199254740992,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -310,7 +381,9 @@
   {
    "id": "adm-seq-2p53-plus-1-decimal",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq 2^53+1 spelled as a decimal",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":9007199254740993.0,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -325,7 +398,9 @@
   {
    "id": "adm-seq-negative",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq -1",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":-1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -340,7 +415,9 @@
   {
    "id": "adm-seq-boolean",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq true",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":true,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -355,7 +432,9 @@
   {
    "id": "adm-seq-string",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "seq \"1\"",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":\"1\",\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -370,7 +449,9 @@
   {
    "id": "adm-not-object",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "top-level array",
    "input": {
     "record": "[]"
@@ -385,7 +466,9 @@
   {
    "id": "adm-unknown-member",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "unknown top-level member hint",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"hint\":\"x\"}"
@@ -400,7 +483,9 @@
   {
    "id": "adm-missing-member",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "observed absent",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -415,7 +500,9 @@
   {
    "id": "adm-ref-extra-key",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject reference carries an extra key",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\",\"label\":\"x\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -430,7 +517,9 @@
   {
    "id": "adm-ref-missing-alg",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject reference without digest_alg",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -445,7 +534,9 @@
   {
    "id": "adm-ref-other-alg",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "digest_alg SHA-512",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-512\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -460,7 +551,9 @@
   {
    "id": "adm-hex-uppercase",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject digest in uppercase hex",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18D898476982983B8F4FD3BB36E4D37B9984D223A75AD9FB779FE8C299827FAB\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -475,7 +568,9 @@
   {
    "id": "adm-hex-short",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject digest of 63 hex digits",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fa\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -490,7 +585,9 @@
   {
    "id": "adm-hex-long",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject digest of 65 hex digits",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab0\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -505,7 +602,9 @@
   {
    "id": "adm-subject-wrong-type",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "subject typed dataset-bytes",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -520,7 +619,9 @@
   {
    "id": "adm-observed-wrong-type",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "observed typed dataset: the two digest contexts are not interchangeable",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -535,7 +636,9 @@
   {
    "id": "adm-agent-empty",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "to is empty",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
@@ -550,7 +653,9 @@
   {
    "id": "adm-rel-unknown",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "rel copied",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"copied\",\"schema_version\":\"1\"}"
@@ -565,7 +670,9 @@
   {
    "id": "adm-schema-version",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "schema_version 2",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"2\"}"
@@ -580,7 +687,9 @@
   {
    "id": "adm-address-malformed",
    "category": "admission",
-   "rule": "\u00a72",
+   "rule": [
+    "\u00a72"
+   ],
    "description": "carried address is not 64-hex",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"nothex\"}"
@@ -593,81 +702,128 @@
    }
   },
   {
+   "id": "adm-address-uppercase",
+   "category": "admission",
+   "rule": [
+    "\u00a72"
+   ],
+   "description": "carried address in uppercase hex",
+   "input": {
+    "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"969F4FDC49787D8B91443F4FE983C08705EAE4631C423AFD57842A06C2B4E80A\"}"
+   },
+   "expect": {
+    "reject": {
+     "error": "ShapeError",
+     "code": "MALFORMED_ADDRESS"
+    }
+   }
+  },
+  {
+   "id": "adm-address-not-hex",
+   "category": "admission",
+   "rule": [
+    "\u00a72"
+   ],
+   "description": "carried address of 64 characters that are not hex",
+   "input": {
+    "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"rel\u00e9-1\",\"to\":\"rel\u00e9-2\",\"seq\":1,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\",\"address\":\"gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg\"}"
+   },
+   "expect": {
+    "reject": {
+     "error": "ShapeError",
+     "code": "MALFORMED_ADDRESS"
+    }
+   }
+  },
+  {
    "id": "h1-derived",
    "category": "H1",
-   "rule": "\u00a73 H1",
+   "rule": [
+    "\u00a72 (H1)"
+   ],
    "description": "derived with a result distinct from subject",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-1\",\"to\":\"buyer-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"derived\",\"result\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"dc6f5e5ca54da2e8b920c5e3424de44dac6cb447e31f2b02f4fc52f82964e55c\"},\"schema_version\":\"1\"}"
    },
    "expect": {
-    "address": "1f88c16403d62ad1eaf2f5eb553ac26ee801068b16eca046f1c44082f166528a"
+    "address": "1f88c16403d62ad1eaf2f5eb553ac26ee801068b16eca046f1c44082f166528a",
+    "carried_address": "absent"
    }
   },
   {
    "id": "h1-derived-without-result",
    "category": "H1",
-   "rule": "\u00a73 H1",
+   "rule": [
+    "\u00a72 (H1)"
+   ],
    "description": "derived with result absent",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-1\",\"to\":\"buyer-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"derived\",\"schema_version\":\"1\"}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H1_RESULT_REQUIRED"
+     "error": "PairingError",
+     "code": "RESULT_REQUIRED"
     }
    }
   },
   {
    "id": "h1-derived-result-is-subject",
    "category": "H1",
-   "rule": "\u00a73 H1",
+   "rule": [
+    "\u00a72 (H1)"
+   ],
    "description": "derived with result.digest == subject.digest",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-1\",\"to\":\"buyer-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"derived\",\"result\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"schema_version\":\"1\"}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H1_RESULT_EQUALS_SUBJECT"
+     "error": "PairingError",
+     "code": "RESULT_EQUALS_SUBJECT"
     }
    }
   },
   {
    "id": "h1-verbatim-with-result",
    "category": "H1",
-   "rule": "\u00a73 H1",
+   "rule": [
+    "\u00a72 (H1)"
+   ],
    "description": "verbatim with result present",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-1\",\"to\":\"buyer-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"verbatim\",\"result\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"dc6f5e5ca54da2e8b920c5e3424de44dac6cb447e31f2b02f4fc52f82964e55c\"},\"schema_version\":\"1\"}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H1_RESULT_FORBIDDEN"
+     "error": "PairingError",
+     "code": "RESULT_FORBIDDEN"
     }
    }
   },
   {
    "id": "h1-reencoded-with-result",
    "category": "H1",
-   "rule": "\u00a73 H1",
+   "rule": [
+    "\u00a72 (H1)"
+   ],
    "description": "reencoded with result present",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-1\",\"to\":\"buyer-2\",\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"},\"rel\":\"reencoded\",\"result\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"dc6f5e5ca54da2e8b920c5e3424de44dac6cb447e31f2b02f4fc52f82964e55c\"},\"schema_version\":\"1\"}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H1_RESULT_FORBIDDEN"
+     "error": "PairingError",
+     "code": "RESULT_FORBIDDEN"
     }
    }
   },
   {
    "id": "h2-verbatim",
    "category": "H2",
-   "rule": "\u00a73 H2",
+   "rule": [
+    "\u00a73 H2"
+   ],
    "description": "verbatim: same subject, same observed",
    "input": {
     "records": [
@@ -695,6 +851,7 @@
        "reasons": []
       }
      ],
+     "malformed": [],
      "verified": true
     }
    }
@@ -702,7 +859,9 @@
   {
    "id": "h2-reencoded",
    "category": "H2",
-   "rule": "\u00a73 H2",
+   "rule": [
+    "\u00a73 H2"
+   ],
    "description": "reencoded, the benign case: same subject, observed moved",
    "input": {
     "records": [
@@ -730,6 +889,7 @@
        "reasons": []
       }
      ],
+     "malformed": [],
      "verified": true
     }
    }
@@ -737,7 +897,9 @@
   {
    "id": "h2-verbatim-bytes-moved",
    "category": "H2",
-   "rule": "\u00a73 H2",
+   "rule": [
+    "\u00a73 H2"
+   ],
    "description": "verbatim while observed differs from the predecessor's",
    "input": {
     "records": [
@@ -767,6 +929,7 @@
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -774,7 +937,9 @@
   {
    "id": "h2-reencoded-bytes-still",
    "category": "H2",
-   "rule": "\u00a73 H2",
+   "rule": [
+    "\u00a73 H2"
+   ],
    "description": "reencoded while observed matches the predecessor's",
    "input": {
     "records": [
@@ -804,6 +969,7 @@
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -811,7 +977,9 @@
   {
    "id": "h2-reencoded-subject-changed",
    "category": "H2",
-   "rule": "\u00a73 H2",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "reencoded with a changed subject",
    "input": {
     "records": [
@@ -837,11 +1005,11 @@
        "prev": "d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e",
        "state": "Failed",
        "reasons": [
-        "H2_SUBJECT_CHANGED",
         "H3_SUBJECT_DISCONTINUITY"
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -849,37 +1017,43 @@
   {
    "id": "h3-seq0-with-prev",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a72 (H3)"
+   ],
    "description": "seq 0 carrying prev",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"084c21bfa689ffe087b2e1a6b382b7365d8cbb68a6cb768c0e42b30d6f5bb2f6\"},\"from\":\"seller-0\",\"to\":\"buyer-0\",\"seq\":0,\"rel\":\"verbatim\",\"schema_version\":\"1\",\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9\"}}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H3_PREV_AT_SEQ_ZERO"
+     "error": "PairingError",
+     "code": "PREV_AT_SEQ_ZERO"
     }
    }
   },
   {
    "id": "h3-seq1-without-prev",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a72 (H3)"
+   ],
    "description": "seq 1 with prev absent",
    "input": {
     "record": "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-0\",\"to\":\"buyer-1\",\"seq\":1,\"rel\":\"reencoded\",\"schema_version\":\"1\"}"
    },
    "expect": {
     "reject": {
-     "error": "RuleError",
-     "code": "H3_PREV_REQUIRED"
+     "error": "PairingError",
+     "code": "PREV_REQUIRED"
     }
    }
   },
   {
    "id": "h3-seq-gap",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "seq 2 whose prev is seq 0: a silent drop",
    "input": {
     "records": [
@@ -909,6 +1083,7 @@
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -916,7 +1091,9 @@
   {
    "id": "h3-prev-unresolved",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "prev names a record not in the set",
    "input": {
     "records": [
@@ -941,6 +1118,7 @@
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -948,7 +1126,9 @@
   {
    "id": "h3-substitution",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "subject changes with no bridging derived record: the substitution",
    "input": {
     "records": [
@@ -979,7 +1159,6 @@
        "prev": "76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9",
        "state": "Failed",
        "reasons": [
-        "H2_SUBJECT_CHANGED",
         "H2_VERBATIM_BYTES_CHANGED",
         "H3_SUBJECT_DISCONTINUITY"
        ]
@@ -991,6 +1170,7 @@
        "reasons": []
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -998,7 +1178,10 @@
   {
    "id": "h3-derived-crossing",
    "category": "H3",
-   "rule": "\u00a73 H2 H3",
+   "rule": [
+    "\u00a73 H2",
+    "\u00a73 H3"
+   ],
    "description": "valid chain crossing a derived record; the next record carries result",
    "input": {
     "records": [
@@ -1048,6 +1231,7 @@
        "reasons": []
       }
      ],
+     "malformed": [],
      "verified": true
     }
    }
@@ -1055,7 +1239,9 @@
   {
    "id": "h3-derived-not-followed",
    "category": "H3",
-   "rule": "\u00a73 H2 H3",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "after a derived record, the next record keeps the old subject",
    "input": {
     "records": [
@@ -1103,11 +1289,11 @@
        "prev": "1f88c16403d62ad1eaf2f5eb553ac26ee801068b16eca046f1c44082f166528a",
        "state": "Failed",
        "reasons": [
-        "H2_SUBJECT_CHANGED",
         "H3_SUBJECT_DISCONTINUITY"
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -1115,7 +1301,10 @@
   {
    "id": "h3-forged-cycle",
    "category": "H3",
-   "rule": "\u00a73 H3 H4",
+   "rule": [
+    "\u00a73 H3",
+    "\u00a73 H4"
+   ],
    "description": "carried addresses forge a prev cycle; prev resolves by recomputed address, so neither resolves",
    "input": {
     "records": [
@@ -1153,6 +1342,7 @@
        ]
       }
      ],
+     "malformed": [],
      "verified": false
     }
    }
@@ -1160,7 +1350,9 @@
   {
    "id": "h3-malformed-member",
    "category": "H3",
-   "rule": "\u00a73 H3",
+   "rule": [
+    "\u00a73 H3"
+   ],
    "description": "a record with a duplicate seq member inside a set",
    "input": {
     "records": [
@@ -1176,7 +1368,8 @@
        "seq": 0
       }
      ],
-     "edges": [
+     "edges": [],
+     "malformed": [
       {
        "record_bytes_sha256": "88a56ceb8cb4ed97a58f55ffb98039b1be08da14841f5e617e89e0f5e7c2b8e0",
        "state": "Malformed",
@@ -1192,7 +1385,9 @@
   {
    "id": "h4-two-orders",
    "category": "H4",
-   "rule": "\u00a73 H4",
+   "rule": [
+    "\u00a73 H4"
+   ],
    "description": "one record set in forward and reverse array order",
    "input": {
     "records": [
@@ -1225,7 +1420,6 @@
       {
        "prev": "76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9",
        "reasons": [
-        "H2_SUBJECT_CHANGED",
         "H2_VERBATIM_BYTES_CHANGED",
         "H3_SUBJECT_DISCONTINUITY"
        ],
@@ -1245,7 +1439,9 @@
        ],
        "record": "ed83a219dc853a9633e721f6c4992bf4ce0399da6dfc4a37518b77bb285aa07d",
        "state": "Unresolved"
-      },
+      }
+     ],
+     "malformed": [
       {
        "reasons": [
         "DUPLICATE_MEMBER"
@@ -1280,7 +1476,9 @@
   {
    "id": "h4-respelled-record",
    "category": "H4",
-   "rule": "\u00a73 H4",
+   "rule": [
+    "\u00a73 H4"
+   ],
    "description": "one record in two spellings, in forward and reverse array order",
    "input": {
     "records": [
@@ -1311,6 +1509,7 @@
        "state": "Verified"
       }
      ],
+     "malformed": [],
      "nodes": [
       {
        "address": "76af674c4358c0c5c3dde6bc5584e7f8c3842405ad66e14836ba771fbdb294c9",
@@ -1322,6 +1521,62 @@
       }
      ],
      "verified": true
+    },
+    "orders_agree": true
+   }
+  },
+  {
+   "id": "h4-respelled-malformed",
+   "category": "H4",
+   "rule": [
+    "\u00a73 H4"
+   ],
+   "description": "one malformed record in two spellings: two entries, since it has no canonical form",
+   "input": {
+    "records": [
+     "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"084c21bfa689ffe087b2e1a6b382b7365d8cbb68a6cb768c0e42b30d6f5bb2f6\"},\"from\":\"seller-0\",\"to\":\"buyer-0\",\"seq\":0,\"rel\":\"verbatim\",\"schema_version\":\"1\"}",
+     "{\"subject\":{\"type\":\"dataset\",\"digest_alg\":\"SHA-256\",\"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"},\"observed\":{\"type\":\"dataset-bytes\",\"digest_alg\":\"SHA-256\",\"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"},\"from\":\"buyer-0\",\"to\":\"buyer-1\",\"seq\":1,\"seq\":2,\"prev\":{\"type\":\"handoff\",\"digest_alg\":\"SHA-256\",\"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"},\"rel\":\"reencoded\",\"schema_version\":\"1\"}",
+     "{\"subject\":{\"type\":\"dataset\", \"digest_alg\":\"SHA-256\", \"digest\":\"18d898476982983b8f4fd3bb36e4d37b9984d223a75ad9fb779fe8c299827fab\"}, \"observed\":{\"type\":\"dataset-bytes\", \"digest_alg\":\"SHA-256\", \"digest\":\"01d414299211da47c94c13aa7d0165b712f583007ba498e5e1447ed2a67c52c2\"}, \"from\":\"buyer-0\", \"to\":\"buyer-1\", \"seq\":1, \"seq\":2, \"prev\":{\"type\":\"handoff\", \"digest_alg\":\"SHA-256\", \"digest\":\"d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e\"}, \"rel\":\"reencoded\", \"schema_version\":\"1\"}"
+    ],
+    "orders": [
+     [
+      0,
+      1,
+      2
+     ],
+     [
+      2,
+      1,
+      0
+     ]
+    ]
+   },
+   "expect": {
+    "graph": {
+     "edges": [],
+     "malformed": [
+      {
+       "reasons": [
+        "DUPLICATE_MEMBER"
+       ],
+       "record_bytes_sha256": "3aa62aeac119164d8ab78d5b8d3aa26de260978dbacddd6de0509cf0d50c0de7",
+       "state": "Malformed"
+      },
+      {
+       "reasons": [
+        "DUPLICATE_MEMBER"
+       ],
+       "record_bytes_sha256": "88a56ceb8cb4ed97a58f55ffb98039b1be08da14841f5e617e89e0f5e7c2b8e0",
+       "state": "Malformed"
+      }
+     ],
+     "nodes": [
+      {
+       "address": "d5c117b41ce4a7440c8f4b2c8cb48721273994dc7443cfa396bb3a024f77357e",
+       "seq": 0
+      }
+     ],
+     "verified": false
     },
     "orders_agree": true
    }

@@ -2,17 +2,26 @@
 
     python impl/verify.py        # no arguments; exits 1 on any failure
 
-In order: every file against vectors/SHA256SUMS; impl/canon.py against the hash pinned in
-impl/CANON_PROVENANCE; every vector in vectors/vectors.json; each H4 vector a second time,
+In order: probes of the network guard; every file against vectors/SHA256SUMS; impl/canon.py
+against impl/CANON_PROVENANCE; vectors/CROSS_BUILD against the current vectors.json; every vector in vectors/vectors.json; each H4 vector a second time,
 byte for byte; the cycle guard; the worked example in example/chain.json; the generated
-blocks in README.md and example/README.md. Socket connections and name lookups are refused
-for the whole run. The output carries no paths, times, or versions, so every passing run
-prints the same bytes, and README.md pins those bytes.
+blocks in README.md and example/README.md. The canon.py check covers its hash, the commit
+that README.md and NOTICE quote, and the helpers handoff.py calls.
+
+The network guard is best-effort defence in depth, not a sandbox. Before canon and handoff
+are imported it patches Python's socket lookup and send calls so that an accidental network
+call fails loudly, and the run probes each patched call. Subprocesses, C extensions and raw
+system calls route around it, and the probe list is the patch list, so a call dropped from
+both goes unnoticed here; the output pinned in README.md catches it through the row count.
+The gate is that verification completes with no network
+available. A passing run prints no paths, times, or versions, so every passing run prints
+the same bytes, and README.md pins those bytes.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import socket
 import sys
 from pathlib import Path
@@ -26,9 +35,15 @@ def _refuse(*_args, **_kwargs):
     raise NetworkUsed("verification attempted network access")
 
 
+GUARDED_FUNCTIONS = ("getaddrinfo", "create_connection", "gethostbyname", "gethostbyname_ex",
+                     "gethostbyaddr", "getnameinfo")
+GUARDED_METHODS = ("connect", "connect_ex", "sendto", "sendmsg")
+
+
 def block_network() -> None:
-    socket.getaddrinfo = socket.create_connection = _refuse
-    for name in ("connect", "connect_ex", "sendto"):
+    for name in GUARDED_FUNCTIONS:
+        setattr(socket, name, _refuse)
+    for name in GUARDED_METHODS:
         setattr(socket.socket, name, _refuse)
 
 
@@ -43,7 +58,15 @@ SUMS = ROOT / "vectors" / "SHA256SUMS"
 VECTORS = ROOT / "vectors" / "vectors.json"
 EXAMPLE = ROOT / "example" / "chain.json"
 PROVENANCE = ROOT / "impl" / "CANON_PROVENANCE"
-DOC_BLOCKS = (("README.md", "vector-counts"), ("example/README.md", "example-records"))
+BUILD_ENV = ROOT / "vectors" / "BUILD_ENV"
+CROSS_BUILD = ROOT / "vectors" / "CROSS_BUILD"
+HASHED_FILES = (".gitattributes", ".gitignore", "LICENSE", "LICENSES.md", "LICENSES/CC-BY-4.0.txt", "NOTICE", "SPEC.md",
+                "example/README.md", "example/chain.json", "vectors/BUILD_ENV", "vectors/CROSS_BUILD", "vectors/vectors.json")
+PROVENANCE_KEYS = ("source-repository", "source-path", "source-commit", "last-changed-in", "sha256")
+QUOTED_COMMIT = re.compile(r"vendored unmodified from\s+(\S+)\s+at commit\s+`?([0-9a-f]{40})`?")
+CANON_CALLABLES = ("_admit", "_fold_nfc", "_identifier", "dataset_id")
+CANON_VALUES = ("Reject", "REFERENCE_KEYS", "HEX64")
+DOC_BLOCKS = (("README.md", "vector-counts"), ("README.md", "cross-build"), ("example/README.md", "example-records"))
 TRANSCRIPT = ("README.md", "verify-output")
 EXAMPLE_VECTOR = "h3-substitution"
 
@@ -59,14 +82,47 @@ def compact(value) -> str:
 
 
 def coverage() -> list:
-    """The files SHA256SUMS must list: everything in impl/, the vectors, the example chain."""
+    """The files SHA256SUMS must list: every committed file except README.md, whose pinned
+    output records this check, and SHA256SUMS itself."""
     impl = sorted(p.name for p in (ROOT / "impl").iterdir() if p.is_file() and not p.name.startswith("."))
-    return sorted([f"impl/{name}" for name in impl] + ["example/chain.json", "vectors/vectors.json"])
+    return sorted([f"impl/{name}" for name in impl] + list(HASHED_FILES))
+
+
+def _fields(path: Path, keys) -> dict:
+    fields = {}
+    for line in path.read_text().splitlines():
+        key, _, value = line.partition(" ")
+        if key in keys:
+            fields[key] = value.strip()
+    return fields
+
+
+def provenance() -> dict:
+    return _fields(PROVENANCE, PROVENANCE_KEYS)
+
+
+def build_env() -> dict:
+    return _fields(BUILD_ENV, ("python", "unicode", "rfc8785"))
+
+
+def cross_build() -> tuple:
+    """(the vectors.json SHA-256 the record was compared against, one dict per rebuild)."""
+    compared, rebuilds = None, []
+    if CROSS_BUILD.is_file():
+        for line in CROSS_BUILD.read_text().splitlines():
+            parts = line.split()
+            if not parts or line.startswith("#"):
+                continue
+            if parts[0] == "compared-against":
+                compared = parts[1]
+            else:
+                rebuilds.append(dict(zip(parts[0::2], parts[1::2])))
+    return compared, rebuilds
 
 
 def outcome(raw: bytes) -> dict:
     try:
-        return {"address": handoff.derive_address(raw)}
+        return {"address": handoff.derive_address(raw), "carried_address": handoff.check_address(raw)}
     except handoff.HandoffError as error:
         return {"reject": {"error": type(error).__name__, "code": error.code}}
 
@@ -99,18 +155,17 @@ def abbrev(digest: str) -> str:
     return f"`{digest[:12]}…`"
 
 
-def render_blocks(doc: dict, example: dict) -> dict:
+def render_blocks(doc: dict, example: dict, env: dict, cross: tuple) -> dict:
     vectors = doc["vectors"]
     categories = list(dict.fromkeys(v["category"] for v in vectors))
     lines = ["| category | spec | vectors |", "|---|---|---:|"]
     for category in categories:
         members = [v for v in vectors if v["category"] == category]
-        rules = sorted({token for v in members for token in v["rule"].split() if token.startswith("H")})
-        rules = "§3 " + ", ".join(rules) if rules else "§2"
+        rules = ", ".join(sorted({rule for v in members for rule in v["rule"]}))
         lines.append(f"| {category} | {rules} | {len(members)} |")
     lines.append(f"| **total** | | **{len(vectors)}** |")
-    made = doc["generated_with"]
-    lines += ["", f"Generated with CPython {made['python']}, Unicode {made['unicode']}, rfc8785 {made['rfc8785']}."]
+    lines += ["", f"Built with CPython {env['python']}, Unicode {env['unicode']}, rfc8785 {env['rfc8785']} "
+                  "(recorded in `vectors/BUILD_ENV`)."]
     counts = "\n".join(lines) + "\n"
 
     payloads = {p["label"]: p for p in example["payloads"]}
@@ -130,7 +185,16 @@ def render_blocks(doc: dict, example: dict) -> dict:
         rows.append(f"| seq {seqs[edge['record']]} → seq {seqs.get(edge['prev'], '?')} | **{edge['state']}** | {reasons} |")
     rows += ["", f"Payloads: " + "; ".join(f"{label} is dataset {p['dataset']}, {len(p['text'].encode())} bytes"
                                             for label, p in payloads.items()) + "."]
-    return {"vector-counts": counts, "example-records": "\n".join(rows) + "\n"}
+    _, rebuilds = cross
+    if rebuilds:
+        lines = ["`impl/cross_build.py` rebuilt the generated files under other interpreters and compared each "
+                 "byte for byte with the committed one (recorded in `vectors/CROSS_BUILD`):", ""]
+        lines += [f"- Python {r['python']}, Unicode {r['unicode']}, rfc8785 {r['rfc8785']}: "
+                  f"`vectors/vectors.json` {r['vectors.json']}, `example/chain.json` {r['chain.json']}, "
+                  f"`vectors/BUILD_ENV` {r['BUILD_ENV']}." for r in rebuilds]
+    else:
+        lines = ["No rebuild under another interpreter is recorded; run `impl/cross_build.py`."]
+    return {"vector-counts": counts, "cross-build": "\n".join(lines) + "\n", "example-records": "\n".join(rows) + "\n"}
 
 
 def _markers(name: str):
@@ -159,15 +223,19 @@ def transcript(report: str) -> str:
 
 
 # checks --------------------------------------------------------------------------------------
+def _identity(result: dict):
+    return result.get("address", result)
+
+
 def check_vector(vector: dict, by_id: dict):
     got = evaluate(vector)
     if got != vector["expect"]:
         return f"expected {compact(vector['expect'])}, got {compact(got)}"
     if "equivalent_to" in vector and vector["input"] == by_id[vector["equivalent_to"]]["input"]:
         return f"same input as {vector['equivalent_to']}, so the equivalence proves nothing"
-    if "equivalent_to" in vector and got != evaluate(by_id[vector["equivalent_to"]]):
+    if "equivalent_to" in vector and _identity(got) != _identity(evaluate(by_id[vector["equivalent_to"]])):
         return f"differs from {vector['equivalent_to']}"
-    if "differs_from" in vector and got == evaluate(by_id[vector["differs_from"]]):
+    if "differs_from" in vector and _identity(got) == _identity(evaluate(by_id[vector["differs_from"]])):
         return f"does not differ from {vector['differs_from']}"
     return None
 
@@ -178,8 +246,8 @@ def check_example(example: dict, expected_graph: dict) -> list:
         record, payload = hop["record"], next(p for p in example["payloads"] if p["label"] == hop["received"])
         raw = payload["text"].encode()
         name = f"seq {record['seq']}"
-        derived = handoff.derive_address(compact(record).encode())
-        results.append((f"{name} address", None if derived == record["address"] else f"derives {derived}"))
+        carried = handoff.check_address(compact(record).encode())
+        results.append((f"{name} address", None if carried == handoff.ADDRESS_MATCHES else f"carried address {carried}"))
         digests_match = (record["subject"]["digest"] == canon.dataset_id(raw) == payload["dataset_id"]
                          and record["observed"]["digest"] == sha256(raw))
         results.append((f"{name} digests", None if digests_match else "subject or observed does not match its payload"))
@@ -195,12 +263,17 @@ def run_checks():
         rows.append((label, sum(detail is None for _, detail in results), len(results)))
         failures.extend(f"{label} {name}: {detail}" for name, detail in results if detail is not None)
 
-    try:
-        socket.getaddrinfo("localhost", None)
-        refused = "a name lookup was allowed"
-    except NetworkUsed:
-        refused = None
-    row("network guard", [("getaddrinfo", refused)])
+    results = []
+    for owner, names in ((socket, GUARDED_FUNCTIONS), (socket.socket, GUARDED_METHODS)):
+        for name in names:
+            try:
+                getattr(owner, name)(None)
+                results.append((name, "the call was allowed"))
+            except NetworkUsed:
+                results.append((name, None))
+            except Exception as error:
+                results.append((name, f"not guarded ({type(error).__name__})"))
+    row("network guard", results)
 
     listed = {}
     for line in SUMS.read_text().splitlines():
@@ -213,9 +286,24 @@ def run_checks():
         results.append((path, None if actual == listed[path] else f"sha256 {actual}"))
     row("sha256sums", results)
 
-    pinned = next(line.split()[1] for line in PROVENANCE.read_text().splitlines() if line.startswith("sha256 "))
+    pinned = provenance()
     actual = sha256((ROOT / "impl" / "canon.py").read_bytes())
-    row("canon.py provenance", [("impl/canon.py", None if actual == pinned else f"sha256 {actual}, pinned {pinned}")])
+    results = [("sha256", None if actual == pinned["sha256"] else f"sha256 {actual}, pinned {pinned['sha256']}")]
+    for path in ("README.md", "NOTICE"):
+        quotes = QUOTED_COMMIT.findall((ROOT / path).read_text())
+        agrees = (len(quotes) == 1 and pinned["source-repository"] in quotes[0][0]
+                  and quotes[0][1] == pinned["source-commit"])
+        results.append((f"{path} commit", None if agrees else f"quotes {quotes}, pinned {pinned['source-commit']}"))
+    missing = [name for name in CANON_CALLABLES if not callable(getattr(canon, name, None))]
+    missing += [name for name in CANON_VALUES if not hasattr(canon, name)]
+    results.append(("helpers", None if not missing else f"canon.py lacks {missing}"))
+    row("canon.py provenance", results)
+
+    compared, rebuilds = cross_build()
+    current = sha256(VECTORS.read_bytes())
+    fresh = compared == current and bool(rebuilds)
+    row("cross-build record", [("vectors/CROSS_BUILD", None if fresh else
+                                 f"compared against vectors.json {compared}, current is {current}; run impl/cross_build.py")])
 
     doc = json.loads(VECTORS.read_text())
     vectors = doc["vectors"]
@@ -237,7 +325,7 @@ def run_checks():
     example = json.loads(EXAMPLE.read_text())
     row("example", check_example(example, by_id[EXAMPLE_VECTOR]["expect"]["graph"]))
 
-    rendered = render_blocks(doc, example)
+    rendered = render_blocks(doc, example, build_env(), cross_build())
     results = []
     for path, name in DOC_BLOCKS:
         current = block((ROOT / path).read_text(), name) == rendered[name]

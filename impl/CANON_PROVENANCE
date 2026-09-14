@@ -6,4 +6,5 @@ source-commit      f60922396b81f44ed181568c922281d9eb81e98f
 last-changed-in    a2eef53cebcae9d89d80a58be93940780b0b4e21
 sha256             48d6ad1c92a292b1979ef05bc3010007ba0120e5da0d3be5f3f4f9b77902eb8d
 
-impl/verify.py reads the sha256 line above and fails if impl/canon.py does not hash to it.
+impl/verify.py fails if impl/canon.py does not hash to the sha256 above, or if README.md or
+NOTICE quotes a source repository or commit other than the two above.

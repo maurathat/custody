@@ -1,0 +1,5 @@
+# Environment of the last impl/build_vectors.py run, recorded for reproduction.
+# vectors.json does not depend on it.
+python 3.13.3
+unicode 15.1.0
+rfc8785 0.1.4

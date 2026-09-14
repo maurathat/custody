@@ -1,0 +1,5 @@
+# Written by impl/cross_build.py. Each line is one interpreter's rebuild, compared byte for
+# byte with the files in this checkout. Recorded where it was run, like BUILD_ENV.
+compared-against 1107e3de6a6426a593d41663a5bc5b7911627e46249cc56dd823b8a85c6f2b06
+python 3.14.4 unicode 16.0.0 rfc8785 0.1.4 vectors.json identical chain.json identical BUILD_ENV differs
+python 3.9.6 unicode 13.0.0 rfc8785 0.1.4 vectors.json identical chain.json identical BUILD_ENV differs
